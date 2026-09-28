@@ -5,7 +5,6 @@ class FXMacroData {
  private:
   string api_key;
   string base_url;
-  bool key_in_url;
 
   string Lower(string value) {
     StringToLower(value);
@@ -35,22 +34,14 @@ class FXMacroData {
     return encoded;
   }
 
-  string BuildUrl(string path) {
-    string request_url = base_url + path;
-    if (key_in_url && api_key != "") {
-      request_url += "?api_key=" + Encode(api_key);
-    }
-    return request_url;
-  }
+  string BuildUrl(string path) { return base_url + path; }
 
  public:
-  // key_in_query controls whether the API key is appended as ?api_key= to every
-  // URL. Prefer key_in_query=false and pass Headers() to WebRequest() so the key
-  // does not appear in URLs, logs or proxies.
-  FXMacroData(string key = "", string url = "https://api.fxmacrodata.com/v1", bool key_in_query = true) {
+  // The API key is sent only as the X-API-Key request header (see Headers() and
+  // Get()), so it never appears in URLs, logs or proxies.
+  FXMacroData(string key = "", string url = "https://api.fxmacrodata.com/v1") {
     api_key = key;
     base_url = url;
-    key_in_url = key_in_query;
     // Trim trailing separators so joining with a path yields exactly one "/".
     while (StringLen(base_url) > 0 && StringSubstr(base_url, StringLen(base_url) - 1, 1) == "/") {
       base_url = StringSubstr(base_url, 0, StringLen(base_url) - 1);
@@ -59,6 +50,18 @@ class FXMacroData {
 
   // Request headers for WebRequest(), carrying the API key as X-API-Key.
   string Headers() { return api_key != "" ? "X-API-Key: " + api_key + "\r\n" : ""; }
+
+  // Performs a GET request for a URL built by this class and returns the HTTP
+  // status code (or -1 on failure). The API host must be allowed in the
+  // terminal's WebRequest settings.
+  int Get(string request_url, string &response, int timeout = 5000) {
+    char data[];
+    char result[];
+    string result_headers;
+    int status = WebRequest("GET", request_url, Headers(), timeout, data, result, result_headers);
+    response = status > 0 ? CharArrayToString(result, 0, WHOLE_ARRAY, CP_UTF8) : "";
+    return status;
+  }
 
   string DataCatalogue(string currency) { return BuildUrl("/data_catalogue/" + Encode(Lower(currency))); }
   string Announcements(string currency, string indicator) {
