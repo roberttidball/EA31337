@@ -93,7 +93,6 @@ class FXMacroData {
   string RiskSentiment() { return BuildUrl("/risk_sentiment"); }
   string News(string currency) { return BuildUrl("/news/" + Encode(Lower(currency))); }
   string PressReleases(string currency) { return BuildUrl("/press-releases/" + Encode(Lower(currency))); }
-  string CentralBankers(string currency) { return BuildUrl("/central_bankers/" + Encode(Lower(currency))); }
 };
 
 #endif
