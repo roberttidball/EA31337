@@ -63,6 +63,15 @@ class FXMacroData {
     return status;
   }
 
+  // Appends paging parameters to a URL built by this class. History endpoints
+  // (announcements, predictions, forex, COT, commodities) return 20 rows by
+  // default and at most 100 per request, newest first; step offset by limit
+  // while the response "pagination" object reports "has_more": true.
+  string Page(string request_url, int limit = 100, int offset = 0) {
+    string separator = StringFind(request_url, "?") >= 0 ? "&" : "?";
+    return request_url + separator + "limit=" + IntegerToString(limit) + "&offset=" + IntegerToString(offset);
+  }
+
   string DataCatalogue(string currency) { return BuildUrl("/data_catalogue/" + Encode(Lower(currency))); }
   string Announcements(string currency, string indicator) {
     return BuildUrl("/announcements/" + Encode(Lower(currency)) + "/" + Encode(indicator));
