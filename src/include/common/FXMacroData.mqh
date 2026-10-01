@@ -53,11 +53,16 @@ class FXMacroData {
 
   // Performs a GET request for a URL built by this class and returns the HTTP
   // status code (or -1 on failure). The API host must be allowed in the
-  // terminal's WebRequest settings.
+  // terminal's WebRequest settings. When a key is set, the request is refused
+  // unless the URL uses https://, so the key is never sent in cleartext.
   int Get(string request_url, string &response, int timeout = 5000) {
     char data[];
     char result[];
     string result_headers;
+    if (api_key != "" && StringSubstr(Lower(request_url), 0, 8) != "https://") {
+      response = "";
+      return -1;
+    }
     int status = WebRequest("GET", request_url, Headers(), timeout, data, result, result_headers);
     response = status > 0 ? CharArrayToString(result, 0, WHOLE_ARRAY, CP_UTF8) : "";
     return status;
